@@ -1,0 +1,55 @@
+QMainWindow, QDialog {
+   background: rgb(46, 47, 48);
+}
+
+QScrollBar:vertical {
+    background: rgb(74, 75, 77);
+    width: 15px;
+    margin: 22px 0 22px 0;
+}
+
+QScrollBar::handle:vertical {
+    background: rgb(78, 80, 82);
+    border: 1px solid rgb(101, 102, 104);
+    min-height: 20px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+QScrollBar::add-line:vertical {
+    background: rgb(78, 80, 82);
+    border: 1px solid rgb(101, 102, 104);
+    height: 20px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    background: rgb(78, 80, 82);
+    border: 1px solid rgb(101, 102, 104);
+    height: 20px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical {
+    width: 10px;
+    height: 10px;
+    image: url(:/images/top-arrow.png);
+}
+
+QScrollBar::down-arrow:vertical {
+    width: 10px;
+    height: 10px;
+    image: url(:/images/down-arrow.png);
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+QLabel {
+    color: rgb(181, 182, 182);
+    font-weight: bold;
+    font-size: 11px;
+}
