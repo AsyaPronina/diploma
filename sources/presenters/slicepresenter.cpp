@@ -17,7 +17,7 @@ void SlicePresenter::bindView()
 
 void SlicePresenter::scrollToSlice(int sliderPos)
 {
-    int calculatedIndex = 0;
+    int calculatedIndex = 0;//calculateCurrentIndex(sliderPos);
     int min = 0, max;
 
     ITomogram *ct = m_model->property("originCT").value<ITomogram *>();
@@ -30,9 +30,9 @@ void SlicePresenter::scrollToSlice(int sliderPos)
     {
         max = ct->getPlanesCount() - 1;
         calculatedIndex = qBound(min, sliderPos, max);
-        for (int i = 0; i < ct->getRowsCount(); i++)
+        for (int i = 0; i < ct->getRowsCount(); ++i)
         {
-            for (int j = 0; j < ct->getColumnsCount(); j++)
+            for (int j = 0; j < ct->getColumnsCount(); ++j)
             {
                 QColor color(*((int *)ct->getValue(i, j, calculatedIndex)));
                 tomogramImage->setPixel(j, i, color.rgb());
@@ -44,9 +44,9 @@ void SlicePresenter::scrollToSlice(int sliderPos)
     {
         max = ct->getRowsCount() - 1;
         calculatedIndex = qBound(min, sliderPos, max);
-        for (int i = 0; i < ct->getPlanesCount(); i++)
+        for (int i = 0; i < ct->getPlanesCount(); ++i)
         {
-            for (int j = 0; j < ct->getColumnsCount(); j++)
+            for (int j = 0; j < ct->getColumnsCount(); ++j)
             {
                 QColor color(*((int *)ct->getValue(calculatedIndex, j, (ct->getPlanesCount() - 1) - i)));
                 tomogramImage->setPixel(j, i, color.rgb());
@@ -58,9 +58,9 @@ void SlicePresenter::scrollToSlice(int sliderPos)
     {
         max =  ct->getColumnsCount() - 1;
         calculatedIndex = qBound(min, sliderPos, max);
-        for (int i = 0; i < ct->getRowsCount(); i++)
+        for (int j = 0; j < ct->getPlanesCount(); ++j)
         {
-            for (int j = 0; j < ct->getPlanesCount(); j++)
+            for (int i = 0; i < ct->getRowsCount(); ++i)
             {
                 QColor color(*((int *)ct->getValue(i, (ct->getColumnsCount() - 1) - calculatedIndex, j)));
                 tomogramImage->setPixel(j, i, color.rgb());
@@ -71,7 +71,6 @@ void SlicePresenter::scrollToSlice(int sliderPos)
     }
 
     m_view->setSliceImage(tomogramImage);
-    tomogramImage->save("plane.jpg");
 }
 
 SlicePresenter::~SlicePresenter()

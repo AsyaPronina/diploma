@@ -14,6 +14,7 @@ SOURCES += $$PWD/main.cpp \
            $$PWD/presenters/mainpresenter.cpp \
            $$PWD/presenters/slicepresenter.cpp \
            $$PWD/presenters/propertypresenter.cpp \
+    $$PWD/views/volumeview.cpp
 
 HEADERS += $$PWD/model/domainmodel.h \
            $$PWD/model/tomogram.h \
@@ -24,4 +25,5 @@ HEADERS += $$PWD/model/domainmodel.h \
            $$PWD/presenters/mainpresenter.h \
            $$PWD/presenters/slicepresenter.h \
            $$PWD/presenters/propertypresenter.h \
+    $$PWD/views/volumeview.h
 

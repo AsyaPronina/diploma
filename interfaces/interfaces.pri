@@ -4,3 +4,4 @@ HEADERS += $$PWD/model/itomogram.h \
            $$PWD/views/imainview.h \
            $$PWD/views/iviewfactory.h \
            $$PWD/views/ipropertyview.h \
+           $$PWD/views/ivolumeview.h
