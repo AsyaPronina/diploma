@@ -4,7 +4,8 @@
 #include "propertypresenter.h"
 
 PropertyPresenter::PropertyPresenter(IPropertyView *view):
-    m_view(view), m_model(DomainModel::getInstance())
+    m_model(DomainModel::getInstance()),
+    m_view(view)
 {
     bindView();
     m_view->showView();

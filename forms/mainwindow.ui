@@ -95,7 +95,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="VolumeView" name="openGLWidget">
+   <widget class="VolumeView" name="volumeWidget">
     <property name="geometry">
      <rect>
       <x>570</x>

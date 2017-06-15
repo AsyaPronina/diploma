@@ -23,14 +23,14 @@ public:
     void showView() Q_DECL_OVERRIDE;
     void hideView() Q_DECL_OVERRIDE;
     ISliceView *getSliceView(SLICE_AXIS) const Q_DECL_OVERRIDE;
+    IVolumeView *getVolumeView() const Q_DECL_OVERRIDE;
     ~MainWindow();
 
 signals:
     void viewClosed() Q_DECL_OVERRIDE;
-//must be private
-public:
+
+private:
     Ui::MainWindow *m_ui;
-    //QImage &m_tomogramImage;
 };
 
 #endif // MAINWINDOW_H

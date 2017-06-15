@@ -109,3 +109,8 @@ void *Tomogram::getValue(int i, int j, int k) const
 {
     return &m_data[(k * m_rows * m_columns + i * m_columns + j) * m_colorDepth];
 }
+
+const void *Tomogram::getData() const
+{
+    return m_data;
+}

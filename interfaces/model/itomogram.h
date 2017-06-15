@@ -13,6 +13,7 @@ public:
     virtual int getColorDepth() const = 0;
     virtual void *getValue(int i) const = 0;
     virtual void *getValue(int i, int j, int k) const = 0;
+    virtual const void *getData() const = 0;
 };
 
 Q_DECLARE_METATYPE(ITomogram *)

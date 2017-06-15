@@ -20,7 +20,9 @@ DEPENDPATH += C:\ \
 #               C:\opencv\build\include\opencv \
 #               C:\opencv\build\include\opencv2 \
 
-#LIBS += -LC:\opencv\build\x64\vc12\lib \
+LIBS += -lglu32 \
+        -lopengl32
+#-LC:\opencv\build\x64\vc12\lib \
 #    opencv_core2413.lib \
 #    opencv_highgui2413.lib\
 #    opencv_imgproc2413.lib \

@@ -25,6 +25,7 @@ public:
     int getColorDepth() const Q_DECL_OVERRIDE;
     void *getValue(int i) const Q_DECL_OVERRIDE;
     void *getValue(int i, int j, int k) const Q_DECL_OVERRIDE;
+    const void *getData() const Q_DECL_OVERRIDE;
 
     void setRowsCount(size_t count);
     void setColumnsCount(size_t count);

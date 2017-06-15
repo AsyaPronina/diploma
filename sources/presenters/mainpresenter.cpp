@@ -78,4 +78,5 @@ void MainPresenter::paint()
     m_xyAxisSlicePresenter = new SlicePresenter(m_view->getSliceView(SLICE_AXIS::XY), SLICE_AXIS::XY);
     m_xzAxisSlicePresenter = new SlicePresenter(m_view->getSliceView(SLICE_AXIS::XZ), SLICE_AXIS::XZ);
     m_yzAxisSlicePresenter = new SlicePresenter(m_view->getSliceView(SLICE_AXIS::YZ), SLICE_AXIS::YZ);
+    m_volumePresenter = new VolumePresenter(m_view->getVolumeView());
 }

@@ -4,7 +4,9 @@
 #include "slicepresenter.h"
 
 SlicePresenter::SlicePresenter(ISliceView *view, SLICE_AXIS axis):
-    m_view(view), m_model(DomainModel::getInstance()), m_axis(axis)
+    m_model(DomainModel::getInstance()),
+    m_view(view),
+    m_axis(axis)
 {
     bindView();
     scrollToSlice(0);

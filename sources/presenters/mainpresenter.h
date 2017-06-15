@@ -7,6 +7,7 @@
 #include "views/mainwindow.h"
 #include "presenters/propertypresenter.h"
 #include "presenters/slicepresenter.h"
+#include "presenters/volumepresenter.h"
 
 class MainPresenter : public QObject
 {
@@ -33,6 +34,7 @@ private:
     SlicePresenter *m_xyAxisSlicePresenter,
                    *m_xzAxisSlicePresenter,
                    *m_yzAxisSlicePresenter;
+    VolumePresenter *m_volumePresenter;
 
     QFile *m_ctFile;
 };

@@ -42,6 +42,13 @@ ISliceView *MainWindow::getSliceView(SLICE_AXIS sliceAxis) const
     case SLICE_AXIS::YZ:
         return m_ui->yzAxisSliceWidget;
     }
+
+    return nullptr;
+}
+
+IVolumeView *MainWindow::getVolumeView() const
+{
+    return m_ui->volumeWidget;
 }
 
 MainWindow::~MainWindow()

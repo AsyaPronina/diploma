@@ -47,9 +47,10 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
 #include <QOpenGLShader>
 #include "volumeview.h"
+
+#include <QDebug>
 
 #define FACES 6
 #define FACE_VERTEX 4
@@ -72,14 +73,20 @@ void VolumeView::hideView()
     this->hide();
 }
 
-void VolumeView::provideData(size_t height, size_t width, size_t depth, int depthOfColor, const unsigned char* data)
+void VolumeView::provideData(size_t height, size_t width, size_t depth, int depthOfColor, const void* data)
 {
- //dummy
+    updateTexture(height, width, depth, depthOfColor, data);
+    update();
 }
 
 VolumeView::~VolumeView()
 {
-
+    makeCurrent();
+    m_vbo->destroy();
+    glDeleteTextures(1, &m_texture);
+    delete m_program;
+    //delete shaders?
+    doneCurrent();
 }
 
 void VolumeView::initializeGL()
@@ -88,26 +95,19 @@ void VolumeView::initializeGL()
 
     createBoundingBox();
 
+    const unsigned char data = (char)49;
+    createTexture(1, 1, 1, 1, &data);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
     QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
-    const char *vsrc =
-        "in vec4 vertex;\n"
-        "uniform mat4 mvp_matrix;\n"
-        "void main(void)\n"
-        "{\n"
-        "    gl_Position = mvp_matrix * vertex;\n"
-        "}\n";
-    vshader->compileSourceCode(vsrc);
+    vshader->compileSourceFile(":/shaders/vertex_shader.glsl");
+    qDebug() << vshader->log();
 
     QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
-    const char *fsrc =
-        "void main(void)\n"
-        "{\n"
-        "    gl_FragColor = vec4(0.3, 0.3, 0.3, 0);\n"
-        "}\n";
-    fshader->compileSourceCode(fsrc);
+    fshader->compileSourceFile(":/shaders/fragment_shader_volume_ray_casting.glsl");
+    qDebug() << fshader->log();
 
     m_program = new QOpenGLShaderProgram;
     m_program->addShader(vshader);
@@ -122,12 +122,28 @@ void VolumeView::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     QMatrix4x4 matrix;
-    matrix.translate(0.0, 0.0, -5.0);
+    //model matrix is absent, since we set cube coordinates in world space.
+    //view atrix is absent, since we believe that camera position in the world origin.
+
+    //only for rotate and translate
+    matrix.translate(0.0, 0.0, -5.);
     matrix.rotate(m_rotation.x() / 16.0f, 1.0f, 0.0f, 0.0f);
     matrix.rotate(m_rotation.y() / 16.0f, 0.0f, 1.0f, 0.0f);
     matrix.rotate(m_rotation.z() / 16.0f, 0.0f, 0.0f, 1.0f);
 
+
+    //VIEW matrix must align to world origin
+    QVector4D camera_position(0.0, 0.0, 0.0, 1.0);
+    camera_position = matrix * camera_position;
+
     m_program->setUniformValue("mvp_matrix", m_projection * matrix);
+    m_program->setUniformValue("texture", m_texture);
+    m_program->setUniformValue("level1", 0.02f);
+    m_program->setUniformValue("step_length", 0.003f);
+    m_program->setUniformValue("box1", QVector3D(0., 0., 0.));
+    m_program->setUniformValue("box2", QVector3D(1., 1., 1.));
+    m_program->setUniformValue("camera_position", camera_position.toVector3D());
+
     int vertexLocation = m_program->attributeLocation("vertex");
     m_program->enableAttributeArray(vertexLocation);
     m_program->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 3, 3 * sizeof(GLfloat));
@@ -158,7 +174,8 @@ void VolumeView::mouseMoveEvent(QMouseEvent *e)
     int dx = e->x() - m_mousePosition.x();
     int dy = e->y() - m_mousePosition.y();
 
-    m_rotation += QVector3D(8 * dy, 8 * dx, 0);
+    const int speed = 8;
+    m_rotation += QVector3D(speed * dy, speed * dx, 0);
     update();
 
     m_mousePosition.setX(e->pos().x());
@@ -170,12 +187,12 @@ void VolumeView::createBoundingBox()
     int size = FACES * FACE_VERTEX * VERTEX_COMPONENTS;
 
     static const GLfloat coords[FACES][FACE_VERTEX][VERTEX_COMPONENTS] = {
-        { { +1.f, -1.f, -1.f }, { -1.f, -1.f, -1.f }, { -1.f, +1.f, -1.f }, { +1.f, +1.f, -1.f } },
-        { { +1.f, +1.f, -1.f }, { -1.f, +1.f, -1.f }, { -1.f, +1.f, +1.f }, { +1.f, +1.f, +1.f } },
-        { { +1.f, -1.f, +1.f }, { +1.f, -1.f, -1.f }, { +1.f, +1.f, -1.f }, { +1.f, +1.f, +1.f } },
-        { { -1.f, -1.f, -1.f }, { -1.f, -1.f, +1.f }, { -1.f, +1.f, +1.f }, { -1.f, +1.f, -1.f } },
-        { { +1.f, -1.f, +1.f }, { -1.f, -1.f, +1.f }, { -1.f, -1.f, -1.f }, { +1.f, -1.f, -1.f } },
-        { { -1.f, -1.f, +1.f }, { +1.f, -1.f, +1.f }, { +1.f, +1.f, +1.f }, { -1.f, +1.f, +1.f } }
+        { { +1.f, 0.f, 0.f }, { 0.f, 0.f, 0.f }, { 0.f, +1.f, 0.f }, { +1.f, +1.f, 0.f } },
+        { { +1.f, +1.f, 0.f }, { 0.f, +1.f, 0.f }, { 0.f, +1.f, +1.f }, { +1.f, +1.f, +1.f } },
+        { { +1.f, 0.f, +1.f }, { +1.f, 0.f, 0.f }, { +1.f, +1.f, 0.f }, { +1.f, +1.f, +1.f } },
+        { { 0.f, 0.f, 0.f }, { 0.f, 0.f, +1.f }, { 0.f, +1.f, +1.f }, { 0.f, +1.f, 0.f } },
+        { { +1.f, 0.f, +1.f }, { 0.f, 0.f, +1.f }, { 0.f, 0.f, 0.f }, { +1.f, 0.f, 0.f } },
+        { { 0.f, 0.f, +1.f }, { +1.f, 0.f, +1.f }, { +1.f, +1.f, +1.f }, { 0.f, +1.f, +1.f } }
     };
 
     m_vbo = new QOpenGLBuffer();
@@ -183,3 +200,49 @@ void VolumeView::createBoundingBox()
     m_vbo->bind();
     m_vbo->allocate(coords, size * sizeof(GLfloat));
 }
+
+void VolumeView::createTexture(int height, int width, int depth, int depthOfColor, const void *data)
+{
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glEnable(GL_TEXTURE_3D);
+
+    glGenTextures(1, &m_texture);
+    glBindTexture(GL_TEXTURE_3D, m_texture);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+
+    updateTexture(height, width, depth, depthOfColor, data);
+
+    glDisable(GL_TEXTURE_3D);
+    glActiveTexture(GL_TEXTURE0);
+}
+
+void VolumeView::updateTexture(int height, int width, int depth, int depthOfColor, const void *data)
+{
+    glBindTexture(GL_TEXTURE_3D, m_texture);
+
+    int internalFormat, textureFormat;
+    GLenum type;
+
+    if (depthOfColor == 1)
+    {
+        internalFormat = GL_LUMINANCE8;
+        textureFormat = GL_LUMINANCE;
+        type = GL_UNSIGNED_BYTE;
+
+    }
+    else
+    {
+        internalFormat = GL_LUMINANCE16F_ARB;
+        textureFormat = GL_LUMINANCE;
+        type = GL_UNSIGNED_SHORT;
+    }
+
+    static PFNGLTEXIMAGE3DPROC glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
+    glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, height, depth, 0, textureFormat, type, data);
+}
+

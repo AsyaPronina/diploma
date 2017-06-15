@@ -3,5 +3,7 @@
         <file>styles/application.qss</file>
         <file>images/top-arrow.png</file>
         <file>images/down-arrow.png</file>
+        <file>shaders/fragment_shader_volume_ray_casting.glsl</file>
+        <file>shaders/vertex_shader.glsl</file>
     </qresource>
 </RCC>

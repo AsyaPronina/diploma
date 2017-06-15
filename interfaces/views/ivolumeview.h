@@ -7,7 +7,7 @@
 class IVolumeView : public IView
 {
 public:
-    virtual void provideData(size_t height, size_t width, size_t depth, int depthOfColor, const unsigned char* data) = 0;
+    virtual void provideData(size_t height, size_t width, size_t depth, int depthOfColor, const void* data) = 0;
 };
 
 Q_DECLARE_INTERFACE(IVolumeView, "IVolumeView")
