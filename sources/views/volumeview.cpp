@@ -98,7 +98,7 @@ void VolumeView::initializeGL()
 
     createBoundingBox(m_boundingBox.first, m_boundingBox.second);
 
-    const unsigned char data = (char)3;
+    const unsigned char data = (char)0;
     createTexture(1, 1, 1, 1, &data);
 
     glEnable(GL_DEPTH_TEST);
@@ -125,18 +125,18 @@ void VolumeView::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     QMatrix4x4 viewTranslationMatrix;
-    viewTranslationMatrix.translate(-.5, -.5, -.5);
+    viewTranslationMatrix.translate(-.5f, -.5f, -.5f);
     QMatrix4x4 viewInvertedTranslationMatrix;
-    viewInvertedTranslationMatrix.translate(.5, .5, .5);
+    viewInvertedTranslationMatrix.translate(.5f, .5f, .5f);
 
     QMatrix4x4 viewRotationMatrix;
     viewRotationMatrix.rotate(m_rotation.x() / 16.0f, 1.0f, 0.0f, 0.0f);
     viewRotationMatrix.rotate(m_rotation.y() / 16.0f, 0.0f, 1.0f, 0.0f);
 
     QMatrix4x4 viewRotatedTranslationMatrix;
-    viewRotatedTranslationMatrix.translate(0.0, 0.0, -3.0);
+    viewRotatedTranslationMatrix.translate(0.0f, 0.0f, -2.0f);
 
-    QVector4D camera_position(0.0, 0.0, 3.0, 1.0);
+    QVector4D camera_position(0.0f, 0.0f, 2.0f, 1.0f);
     camera_position = viewInvertedTranslationMatrix * viewRotationMatrix.inverted() * camera_position;
 
     m_program->setUniformValue("mvp_matrix", m_projection * viewRotatedTranslationMatrix * viewRotationMatrix * viewTranslationMatrix);
