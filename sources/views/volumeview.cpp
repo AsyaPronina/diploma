@@ -50,7 +50,6 @@
 #include <QOpenGLShader>
 #include "volumeview.h"
 
-#include <QDebug>
 
 #define FACES 6
 #define FACE_VERTEX 4
@@ -58,9 +57,13 @@
 
 VolumeView::VolumeView(QWidget *parent) :
     QOpenGLWidget(parent),
-    m_program(Q_NULLPTR)
+    m_program(Q_NULLPTR),
+    m_scaleFactor(1)
 {
+    m_boundingBox = QPair<QVector3D, QVector3D>(QVector3D(0.f, 0.f, 0.f), QVector3D(1.f, 1.f, 1.f));
 
+    m_projection.setToIdentity();
+    m_projection.perspective(45, 1, 0.3f, 60.0f);
 }
 
 void VolumeView::showView()
@@ -93,9 +96,9 @@ void VolumeView::initializeGL()
 {
     initializeOpenGLFunctions();
 
-    createBoundingBox();
+    createBoundingBox(m_boundingBox.first, m_boundingBox.second);
 
-    const unsigned char data = (char)49;
+    const unsigned char data = (char)3;
     createTexture(1, 1, 1, 1, &data);
 
     glEnable(GL_DEPTH_TEST);
@@ -121,27 +124,30 @@ void VolumeView::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    QMatrix4x4 matrix;
-    //model matrix is absent, since we set cube coordinates in world space.
-    //view atrix is absent, since we believe that camera position in the world origin.
+    QMatrix4x4 viewTranslationMatrix;
+    viewTranslationMatrix.translate(-.5, -.5, -.5);
+    QMatrix4x4 viewInvertedTranslationMatrix;
+    viewInvertedTranslationMatrix.translate(.5, .5, .5);
 
-    //only for rotate and translate
-    matrix.translate(0.0, 0.0, -5.);
-    matrix.rotate(m_rotation.x() / 16.0f, 1.0f, 0.0f, 0.0f);
-    matrix.rotate(m_rotation.y() / 16.0f, 0.0f, 1.0f, 0.0f);
-    matrix.rotate(m_rotation.z() / 16.0f, 0.0f, 0.0f, 1.0f);
+    QMatrix4x4 viewRotationMatrix;
+    viewRotationMatrix.rotate(m_rotation.x() / 16.0f, 1.0f, 0.0f, 0.0f);
+    viewRotationMatrix.rotate(m_rotation.y() / 16.0f, 0.0f, 1.0f, 0.0f);
 
+    QMatrix4x4 viewRotatedTranslationMatrix;
+    viewRotatedTranslationMatrix.translate(0.0, 0.0, -3.0);
 
-    //VIEW matrix must align to world origin
-    QVector4D camera_position(0.0, 0.0, 0.0, 1.0);
-    camera_position = matrix * camera_position;
+    QVector4D camera_position(0.0, 0.0, 3.0, 1.0);
+    camera_position = viewInvertedTranslationMatrix * viewRotationMatrix.inverted() * camera_position;
 
-    m_program->setUniformValue("mvp_matrix", m_projection * matrix);
-    m_program->setUniformValue("texture", m_texture);
-    m_program->setUniformValue("level1", 0.02f);
+    m_program->setUniformValue("mvp_matrix", m_projection * viewRotatedTranslationMatrix * viewRotationMatrix * viewTranslationMatrix);
+    m_program->setUniformValue("texture_unit", 0);
+    m_program->setUniformValue("density", 0.008f);
+    m_program->setUniformValue("density_limit", 0.108f);
     m_program->setUniformValue("step_length", 0.003f);
-    m_program->setUniformValue("box1", QVector3D(0., 0., 0.));
-    m_program->setUniformValue("box2", QVector3D(1., 1., 1.));
+    m_program->setUniformValue("box1", m_boundingBox.first);
+    m_program->setUniformValue("box2", m_boundingBox.second);
+
+    //in shader we calculate in World space (in accordance to texture_unit coordinates)
     m_program->setUniformValue("camera_position", camera_position.toVector3D());
 
     int vertexLocation = m_program->attributeLocation("vertex");
@@ -154,11 +160,10 @@ void VolumeView::paintGL()
     }
 }
 
-//FOR FUTURE
 void VolumeView::resizeGL(int w, int h)
 {
     qreal aspect = qreal(w) / qreal(h ? h : 1);
-    const qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
+    const qreal zNear = 0.3, zFar = 60.0, fov = 45.0;
 
     m_projection.setToIdentity();
     m_projection.perspective(fov, aspect, zNear, zFar);
@@ -182,17 +187,22 @@ void VolumeView::mouseMoveEvent(QMouseEvent *e)
     m_mousePosition.setY(e->pos().y());
 }
 
-void VolumeView::createBoundingBox()
+void VolumeView::wheelEvent(QWheelEvent *event)
+{
+    double eventDelta = event->delta() / 1200;
+}
+
+void VolumeView::createBoundingBox(QVector3D topLeft, QVector3D bottomRight)
 {
     int size = FACES * FACE_VERTEX * VERTEX_COMPONENTS;
 
     static const GLfloat coords[FACES][FACE_VERTEX][VERTEX_COMPONENTS] = {
-        { { +1.f, 0.f, 0.f }, { 0.f, 0.f, 0.f }, { 0.f, +1.f, 0.f }, { +1.f, +1.f, 0.f } },
-        { { +1.f, +1.f, 0.f }, { 0.f, +1.f, 0.f }, { 0.f, +1.f, +1.f }, { +1.f, +1.f, +1.f } },
-        { { +1.f, 0.f, +1.f }, { +1.f, 0.f, 0.f }, { +1.f, +1.f, 0.f }, { +1.f, +1.f, +1.f } },
-        { { 0.f, 0.f, 0.f }, { 0.f, 0.f, +1.f }, { 0.f, +1.f, +1.f }, { 0.f, +1.f, 0.f } },
-        { { +1.f, 0.f, +1.f }, { 0.f, 0.f, +1.f }, { 0.f, 0.f, 0.f }, { +1.f, 0.f, 0.f } },
-        { { 0.f, 0.f, +1.f }, { +1.f, 0.f, +1.f }, { +1.f, +1.f, +1.f }, { 0.f, +1.f, +1.f } }
+        { { bottomRight.x(), topLeft.y(), topLeft.z() }, { topLeft.x(), topLeft.y(), topLeft.z() }, { topLeft.x(), bottomRight.y(), topLeft.z() }, { bottomRight.x(), bottomRight.y(), topLeft.z() } },
+        { { bottomRight.x(), bottomRight.y(), topLeft.z() }, { topLeft.x(), bottomRight.y(), topLeft.z() }, { topLeft.x(), bottomRight.y(), bottomRight.z() }, { bottomRight.x(), bottomRight.y(), bottomRight.z() } },
+        { { bottomRight.x(), topLeft.y(), bottomRight.z() }, { bottomRight.x(), topLeft.y(), topLeft.z() }, { bottomRight.x(), bottomRight.y(), topLeft.z() }, { bottomRight.x(), bottomRight.y(), bottomRight.z() } },
+        { { topLeft.x(), topLeft.y(), topLeft.z() }, { topLeft.x(), topLeft.y(), bottomRight.z() }, { topLeft.x(), bottomRight.y(), bottomRight.z() }, { topLeft.x(), bottomRight.y(), topLeft.z() } },
+        { { bottomRight.x(), topRight.y(), bottomRight.z() }, { topLeft.x(), topLeft.y(), bottomRight.z() }, { topLeft.x(), topLeft.y(), topLeft.z() }, { bottomRight.x(), topLeft.y(), topLeft.z() } },
+        { { topLeft.x(), topLeft.y(), bottomRight.z() }, { bottomRight.x(), topLeft.y(), bottomRight.z() }, { bottomRight.x(), bottomRight.y(), bottomRight.z() }, { topLeft.x(), bottomRight.y(), bottomRight.z() } }
     };
 
     m_vbo = new QOpenGLBuffer();
@@ -203,7 +213,7 @@ void VolumeView::createBoundingBox()
 
 void VolumeView::createTexture(int height, int width, int depth, int depthOfColor, const void *data)
 {
-    glActiveTexture(GL_TEXTURE0 + 1);
+    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_3D);
 
     glGenTextures(1, &m_texture);

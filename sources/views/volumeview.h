@@ -33,9 +33,12 @@ private:
     void paintGL() Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void createBoundingBox();
+    void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
+    void createBoundingBox(QVector3D leftTop, QVector3D rightBottom);
     void createTexture(int height, int width, int depth, int depthOfColor, const void *data);
     void updateTexture(int height, int width, int depth, int depthOfColor, const void *data);
+
+    QPair<QVector3D, QVector3D> m_boundingBox;
 
     QOpenGLBuffer *m_vbo;
     GLuint m_texture;
@@ -45,6 +48,8 @@ private:
     QVector3D m_rotation;
     QMatrix4x4 m_projection;
     QVector2D m_mousePosition;
+
+    double m_scaleFactor;
 };
 
 #endif // VOLUMEVIEW_H

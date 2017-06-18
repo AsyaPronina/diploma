@@ -1,5 +1,5 @@
-uniform sampler3D texture;
-uniform float level1, step_length;
+uniform sampler3D texture_unit;
+uniform float density, density_limit, step_length;
 uniform vec3 box1, box2;
 uniform vec3 camera_position;
 
@@ -10,15 +10,13 @@ void get_max_step(vec3 origin, vec3 direction, vec3 minimum, vec3 maximum, out f
     vec3 min_pos_t = (minimum - origin) / direction;
     vec3 max_pos_t = (maximum - origin) / direction;
     vec3 max_t = max(max_pos_t, min_pos_t);
-    vec3 min_t = max(min_pos_t, max_pos_t);
-    //DON'T THINK THAT THIS IS NEEDED!!!!
-    min_step = max(min_t.x, min(min_t.y, min_t.z)); //TO DELETE
+    vec3 min_t = min(min_pos_t, max_pos_t);
+    min_step = max(min_t.x, max(min_t.y, min_t.z));
     max_step = min(max_t.x, min(max_t.y, max_t.z));
 }
 
 void main(void)
 {
-    float level2 = level1 + 0.1;
     float global_opacity = 200.0;
 
     vec4 current_position = vec4(position, 0);
@@ -28,20 +26,19 @@ void main(void)
     vec4 color = vec4(0);
 
     get_max_step(position, ray, box1, box2, max_step, min_step);
-    //current_position += step * (min_step / step_length);
+    current_position += step * (min_step / step_length);
     float equ_sample = 0.0;
 
-    current_position += step;
+    //current_position += step;
 
     for (float i = 0.0; i < 2000.0 && (current_position.w < max_step); i += 0.1)
     {
         //trilinear interpolation
-        equ_sample = texture3D(texture, current_position.xyz).x;
+        equ_sample = texture3D(texture_unit, current_position.xyz).x; //rename texture_unit to texture_unit
 
-        if (equ_sample > level1)
+        if (equ_sample > density) // TODO: RENAME density TO DENSITYs
         {
-            vec4 clamped_color = vec4(clamp((equ_sample - level1) / (level2 - level1), 0.0, 1.0));
-            color  =clamped_color;
+            vec4 clamped_color = vec4(clamp((equ_sample - density) / (density_limit - density), 0.0, 1.0));
             //front to back blending
             float d_alpha = (1.0 - color.w) * clamped_color.w * global_opacity;
             color.xyz = color.xyz + d_alpha * clamped_color.xyz;
