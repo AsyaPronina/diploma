@@ -49,7 +49,7 @@ private:
     QMatrix4x4 m_projection;
     QVector2D m_mousePosition;
 
-    double m_scaleFactor;
+    float m_scaleFactor;
 };
 
 #endif // VOLUMEVIEW_H

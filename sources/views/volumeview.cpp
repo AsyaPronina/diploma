@@ -134,9 +134,9 @@ void VolumeView::paintGL()
     viewRotationMatrix.rotate(m_rotation.y() / 16.0f, 0.0f, 1.0f, 0.0f);
 
     QMatrix4x4 viewRotatedTranslationMatrix;
-    viewRotatedTranslationMatrix.translate(0.0f, 0.0f, -2.0f);
+    viewRotatedTranslationMatrix.translate(0.0f, 0.0f, -2.0f + m_scaleFactor);
 
-    QVector4D camera_position(0.0f, 0.0f, 2.0f, 1.0f);
+    QVector4D camera_position(0.0f, 0.0f, 2.0f - m_scaleFactor, 1.0f);
     camera_position = viewInvertedTranslationMatrix * viewRotationMatrix.inverted() * camera_position;
 
     m_program->setUniformValue("mvp_matrix", m_projection * viewRotatedTranslationMatrix * viewRotationMatrix * viewTranslationMatrix);
@@ -189,7 +189,8 @@ void VolumeView::mouseMoveEvent(QMouseEvent *e)
 
 void VolumeView::wheelEvent(QWheelEvent *event)
 {
-    double eventDelta = event->delta() / 1200;
+    m_scaleFactor += (event->delta() / 120);
+    update();
 }
 
 void VolumeView::createBoundingBox(QVector3D topLeft, QVector3D bottomRight)
