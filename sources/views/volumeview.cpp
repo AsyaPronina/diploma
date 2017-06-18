@@ -58,7 +58,9 @@
 VolumeView::VolumeView(QWidget *parent) :
     QOpenGLWidget(parent),
     m_program(Q_NULLPTR),
-    m_scaleFactor(0)
+    m_scaleFactor(.0f),
+    m_density(.008f),
+    m_density_limit(.108f)
 {
     m_boundingBox = QPair<QVector3D, QVector3D>(QVector3D(0.f, 0.f, 0.f), QVector3D(1.f, 1.f, 1.f));
 
@@ -141,9 +143,9 @@ void VolumeView::paintGL()
 
     m_program->setUniformValue("mvp_matrix", m_projection * viewRotatedTranslationMatrix * viewRotationMatrix * viewTranslationMatrix);
     m_program->setUniformValue("texture_unit", 0);
-    m_program->setUniformValue("density", 0.008f);
-    m_program->setUniformValue("density_limit", 0.108f);
-    m_program->setUniformValue("step_length", 0.003f);
+    m_program->setUniformValue("density", m_density);
+    m_program->setUniformValue("density_limit", m_density_limit);
+    m_program->setUniformValue("step_length", m_step_length);
     m_program->setUniformValue("box1", m_boundingBox.first);
     m_program->setUniformValue("box2", m_boundingBox.second);
 
@@ -189,7 +191,7 @@ void VolumeView::mouseMoveEvent(QMouseEvent *e)
 
 void VolumeView::wheelEvent(QWheelEvent *event)
 {
-    m_scaleFactor = std::min(0.2f, m_scaleFactor + (event->delta() / 120));
+    m_scaleFactor = std::min(0.2f, m_scaleFactor + ((float)(event->delta() / 1200.f)));
     update();
 }
 

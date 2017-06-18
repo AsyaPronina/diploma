@@ -44,6 +44,9 @@ private:
     GLuint m_texture;
 
     QOpenGLShaderProgram *m_program;
+    float m_density;
+    float m_density_limit;
+    const float m_step_length = 0.003f;
 
     QVector3D m_rotation;
     QMatrix4x4 m_projection;

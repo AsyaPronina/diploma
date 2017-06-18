@@ -34,9 +34,10 @@ void main(void)
     for (float i = 0.0; i < 2000.0 && (current_position.w < max_step); i += 0.1)
     {
         //trilinear interpolation
-        equ_sample = texture3D(texture_unit, current_position.xyz).x; //rename texture_unit to texture_unit
+        //and texture specific y coordinate calcuating, because texture y axis is pointing up
+        equ_sample = texture3D(texture_unit, vec3(current_position.x, 1.0f - current_position.y, current_position.z)).x;
 
-        if (equ_sample > density) // TODO: RENAME density TO DENSITYs
+        if (equ_sample > density)
         {
             vec4 clamped_color = vec4(clamp((equ_sample - density) / (density_limit - density), 0.0, 1.0));
             //front to back blending
