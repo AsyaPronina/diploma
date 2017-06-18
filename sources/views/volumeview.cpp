@@ -201,7 +201,7 @@ void VolumeView::createBoundingBox(QVector3D topLeft, QVector3D bottomRight)
         { { bottomRight.x(), bottomRight.y(), topLeft.z() }, { topLeft.x(), bottomRight.y(), topLeft.z() }, { topLeft.x(), bottomRight.y(), bottomRight.z() }, { bottomRight.x(), bottomRight.y(), bottomRight.z() } },
         { { bottomRight.x(), topLeft.y(), bottomRight.z() }, { bottomRight.x(), topLeft.y(), topLeft.z() }, { bottomRight.x(), bottomRight.y(), topLeft.z() }, { bottomRight.x(), bottomRight.y(), bottomRight.z() } },
         { { topLeft.x(), topLeft.y(), topLeft.z() }, { topLeft.x(), topLeft.y(), bottomRight.z() }, { topLeft.x(), bottomRight.y(), bottomRight.z() }, { topLeft.x(), bottomRight.y(), topLeft.z() } },
-        { { bottomRight.x(), topRight.y(), bottomRight.z() }, { topLeft.x(), topLeft.y(), bottomRight.z() }, { topLeft.x(), topLeft.y(), topLeft.z() }, { bottomRight.x(), topLeft.y(), topLeft.z() } },
+        { { bottomRight.x(), topLeft.y(), bottomRight.z() }, { topLeft.x(), topLeft.y(), bottomRight.z() }, { topLeft.x(), topLeft.y(), topLeft.z() }, { bottomRight.x(), topLeft.y(), topLeft.z() } },
         { { topLeft.x(), topLeft.y(), bottomRight.z() }, { bottomRight.x(), topLeft.y(), bottomRight.z() }, { bottomRight.x(), bottomRight.y(), bottomRight.z() }, { topLeft.x(), bottomRight.y(), bottomRight.z() } }
     };
 
